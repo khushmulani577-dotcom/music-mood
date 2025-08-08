@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Music Selector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --tired: #FF9A76;
+            --energetic: #FF3D68;
+            --happy: #00D2D3;
+            --sleepy: #5D69B3;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #121212, #1a1a2e);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            color: white;
+        }
+        
+        .header {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(255,154,118,0.1) 0%, transparent 70%);
+            z-index: -1;
+            animation: pulse 15s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.05); opacity: 0.3; }
+            100% { transform: scale(1); opacity: 0.2; }
+        }
+        
+        .card-container {
+            perspective: 1000px;
+            transition: transform 0.5s;
+        }
+        
+        .card {
+            transition: all 0.5s ease;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .card-active {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tired-card {
+            background: linear-gradient(135deg, var(--tired), #FF6B6B);
+        }
+        
+        .energetic-card {
+            background: linear-gradient(135deg, var(--energetic), #FF7582);
+        }
+        
+        .happy-card {
+            background: linear-gradient(135deg, var(--happy), #00A8B5);
+        }
+        
+        .sleepy-card {
+            background: linear-gradient(135deg, var(--sleepy), #7768AE);
+        }
+        
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" fill="%23ffffff" opacity=".1"/></svg>');
+            background-size: cover;
+            animation: wave 10s linear infinite;
+        }
+        
+        @keyframes wave {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1200px; }
+        }
+        
+        .player {
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            transform: translateY(50px);
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .player-active {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .equalizer {
+            display: flex;
+            align-items: flex-end;
+            height: 50px;
+            gap: 5px;
+        }
+        
+        .equalizer-bar {
+            width: 5px;
+            background: white;
+            border-radius: 5px;
+            animation: equalizer 1.5s infinite ease-in-out;
+        }
+        
+        .equalizer-bar:nth-child(1) { animation-delay: 0.1s; height: 15px; }
+        .equalizer-bar:nth-child(2) { animation-delay: 0.3s; height: 25px; }
+        .equalizer-bar:nth-child(3) { animation-delay: 0.5s; height: 35px; }
+        .equalizer-bar:nth-child(4) { animation-delay: 0.2s; height: 20px; }
+        .equalizer-bar:nth-child(5) { animation-delay: 0.4s; height: 30px; }
+        
+        @keyframes equalizer {
+            0%, 100% { transform: scaleY(0.7); }
+            50% { transform: scaleY(1.2); }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <header class="header py-12 px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-yellow-300">Mood Music</h1>
+        <p class="text-xl text-gray-300 max-w-2xl mx-auto">Select your current mood and let the perfect song play</p>
+    </header>
+    
+    <main class="flex-1 container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+            <!-- Tired Card -->
+            <div class="card-container" onclick="playSong('tired')">
+                <div class="card tired-card rounded-2xl p-6 h-full flex flex-col justify-between cursor-pointer shadow-lg hover:shadow-xl transition-all" id="tired-card">
+                    <div>
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Tired</h3>
+                        <p class="text-white text-opacity-80 mb-4">Need to relax or reset?</p>
+                    </div>
+                    <div>
+                        <p class="font-medium">"Sunflower" by Rex Orange County</p>
+                        <p class="text-sm text-white text-opacity-70">Chill, uplifting, and light</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Energetic Card -->
+            <div class="card-container" onclick="playSong('energetic')">
+                <div class="card energetic-card rounded-2xl p-6 h-full flex flex-col justify-between cursor-pointer shadow-lg hover:shadow-xl transition-all" id="energetic-card">
+                    <div>
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Energetic</h3>
+                        <p class="text-white text-opacity-80 mb-4">Need to hype up?</p>
+                    </div>
+                    <div>
+                        <p class="font-medium">"Blinding Lights" by The Weeknd</p>
+                        <p class="text-sm text-white text-opacity-70">Retro vibe, infectious beat</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Happy Card -->
+            <div class="card-container" onclick="playSong('happy')">
+                <div class="card happy-card rounded-2xl p-6 h-full flex flex-col justify-between cursor-pointer shadow-lg hover:shadow-xl transition-all" id="happy-card">
+                    <div>
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Happy</h3>
+                        <p class="text-white text-opacity-80 mb-4">Feeling good and want to vibe?</p>
+                    </div>
+                    <div>
+                        <p class="font-medium">"Electric Love" by BØRNS</p>
+                        <p class="text-sm text-white text-opacity-70">Upbeat, pastel-colored explosion</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sleepy Card -->
+            <div class="card-container" onclick="playSong('sleepy')">
+                <div class="card sleepy-card rounded-2xl p-6 h-full flex flex-col justify-between cursor-pointer shadow-lg hover:shadow-xl transition-all" id="sleepy-card">
+                    <div>
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Sleepy</h3>
+                        <p class="text-white text-opacity-80 mb-4">Winding down, eyes half closed?</p>
+                    </div>
+                    <div>
+                        <p class="font-medium">"Weightless" by Marconi Union</p>
+                        <p class="text-sm text-white text-opacity-70">Scientifically calming</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Player Section -->
+        <div class="player mx-auto max-w-md bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl" id="player">
+            <div class="flex items-center mb-6">
+                <div class="mr-4">
+                    <div class="w-16 h-16 rounded-lg bg-white bg-opacity-20 flex items-center justify-center overflow-hidden" id="cover-art">
+                        <img id="cover-img" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/b37e8be4-7bbe-4eca-8299-7c3fbc147091.png" alt="Album cover" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold" id="song-title">Select a mood to play music</h3>
+                    <p class="text-sm text-gray-300" id="song-artist">Artist</p>
+                    <div class="equalizer mt-2" id="equalizer" style="display: none;">
+                        <div class="equalizer-bar"></div>
+                        <div class="equalizer-bar"></div>
+                        <div class="equalizer-bar"></div>
+                        <div class="equalizer-bar"></div>
+                        <div class="equalizer-bar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center">
+                <iframe id="youtube-player" width="100%" height="0" frameborder="0" allowfullscreen></iframe>
+            </div>
+            
+            <div class="mt-6 flex justify-between items-center">
+                <button onclick="pauseSong()" class="p-3 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+                <button onclick="stopSong()" class="p-3 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="relative py-8 text-center text-gray-400">
+        <div class="wave"></div>
+        <p>Choose your mood and let the music take you away</p>
+    </footer>
+    
+    <script>
+        const songs = {
+            tired: {
+                title: "Sunflower",
+                artist: "Rex Orange County",
+                youtubeId: "ApXoWvfEYVU",
+                cover: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/cd0c89ac-8cbc-4f49-9467-99c6deff5c87.png Orange County&font=raleway"
+            },
+            energetic: {
+                title: "Blinding Lights",
+                artist: "The Weeknd",
+                youtubeId: "fHI8X4OXluQ",
+                cover: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/65d39a66-d8d3-477c-bb23-66be287a58a4.png Lights\nThe Weeknd&font=raleway"
+            },
+            happy: {
+                title: "Electric Love",
+                artist: "BØRNS",
+                youtubeId: "mX5irgQEuBw",
+                cover: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/ad45a667-56f5-49f5-b6ac-60119938c108.png Love\nBØRNS&font=raleway"
+            },
+            sleepy: {
+                title: "Weightless",
+                artist: "Marconi Union",
+                youtubeId: "UfcAVejslrU",
+                cover: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/9aba94a8-2181-4efa-bef8-99753a57c218.png Union&font=raleway"
+            }
+        };
+        
+        let currentSong = null;
+        
+        function playSong(mood) {
+            // Remove active class from all cards
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('card-active');
+            });
+            
+            // Add active class to selected card
+            document.getElementById(`${mood}-card`).classList.add('card-active');
+            
+            // Show player if hidden
+            document.getElementById('player').classList.add('player-active');
+            
+            // Update player info
+            const song = songs[mood];
+            document.getElementById('song-title').textContent = song.title;
+            document.getElementById('song-artist').textContent = song.artist;
+            document.getElementById('cover-img').src = song.cover;
+            document.getElementById('equalizer').style.display = 'flex';
+            
+            // Load YouTube player
+            const player = document.getElementById('youtube-player');
+            player.src = `https://www.youtube.com/embed/${song.youtubeId}?autoplay=1&enablejsapi=1`;
+            player.height = 0; // Start hidden
+            
+            // Fade in player
+            setTimeout(() => {
+                player.height = '200';
+            }, 300);
+            
+            currentSong = mood;
+        }
+        
+        function pauseSong() {
+            // This would require YouTube API implementation for actual pause
+            document.getElementById('equalizer').style.display = 'none';
+            document.getElementById('youtube-player').height = 0;
+            alert("Note: Full YouTube API integration would be needed for actual pause functionality");
+        }
+        
+        function stopSong() {
+            document.getElementById('equalizer').style.display = 'none';
+            document.getElementById('youtube-player').src = '';
+            document.getElementById('youtube-player').height = 0;
+            
+            // Remove active class from all cards
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('card-active');
+            });
+            
+            currentSong = null;
+        }
+    </script>
+</body>
+</html>
+
